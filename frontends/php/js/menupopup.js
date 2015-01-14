@@ -744,6 +744,14 @@ function getMenuPopupTriggerMacro(options) {
 			{
 				label: t('Trigger status "Problem"'),
 				string: '{TRIGGER.VALUE}=1'
+			},
+			{
+				label: t('Trigger acknowledged'),
+				string: '{TRIGGER.ACK}=1'
+			},
+			{
+				label: t('Trigger unacknowledged'),
+				string: '{TRIGGER.ACK}=0'
 			}
 		];
 
