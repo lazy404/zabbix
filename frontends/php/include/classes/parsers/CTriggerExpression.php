@@ -154,6 +154,7 @@ class CTriggerExpression {
 		$this->logicalOperatorParser = new CSetParser(array('and', 'or'));
 		$this->notOperatorParser = new CSetParser(array('not'));
 		$this->macroParser = new CSetParser(array('{TRIGGER.VALUE}'));
+		$this->ackmacroParser = new CSetParser(array('{TRIGGER.ACK}'));
 		$this->functionMacroParser = new CFunctionMacroParser();
 		$this->userMacroParser = new CMacroParser('$');
 		$this->lldMacroParser = new CMacroParser('#');
@@ -526,6 +527,7 @@ class CTriggerExpression {
 	private function parseConstant() {
 		if ($this->parseFunctionMacro() || $this->parseNumber()
 				|| $this->parseUsing($this->macroParser, CTriggerExpressionParserResult::TOKEN_TYPE_MACRO)
+				|| $this->parseUsing($this->ackmacroParser, CTriggerExpressionParserResult::TOKEN_TYPE_MACRO)
 				|| $this->parseUsing($this->userMacroParser, CTriggerExpressionParserResult::TOKEN_TYPE_USER_MACRO)) {
 
 			return true;

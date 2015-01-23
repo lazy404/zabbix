@@ -1671,6 +1671,7 @@ static int	get_autoreg_value_by_event(const DB_EVENT *event, char **replace_to, 
 #define MVAR_STATUS			"{STATUS}"			/* deprecated */
 #define MVAR_TRIGGER_VALUE		"{TRIGGER.VALUE}"
 #define MVAR_TRIGGER_URL		"{TRIGGER.URL}"
+#define MVAR_TRIGGER_ACK		"{TRIGGER.ACK}"
 
 #define MVAR_TRIGGER_EVENTS_ACK			"{TRIGGER.EVENTS.ACK}"
 #define MVAR_TRIGGER_EVENTS_UNACK		"{TRIGGER.EVENTS.UNACK}"
@@ -2278,6 +2279,9 @@ int	substitute_simple_macros(zbx_uint64_t *actionid, const DB_EVENT *event, DB_E
 	size_t			data_alloc, data_len;
 	DC_INTERFACE		interface;
 	zbx_vector_uint64_t	hostids;
+	DB_RESULT	result;
+	DB_ROW		row;
+	int ack;
 
 	if (NULL == data || NULL == *data || '\0' == **data)
 	{
@@ -3210,6 +3214,23 @@ int	substitute_simple_macros(zbx_uint64_t *actionid, const DB_EVENT *event, DB_E
 			{
 				if (0 == strcmp(m, MVAR_TRIGGER_VALUE))
 					replace_to = zbx_dsprintf(replace_to, "%d", event->value);
+				else if (0 == strcmp(m, MVAR_TRIGGER_ACK)) {
+					/* trigger last change is passed as event->acknowledged */
+					result = DBselect("select acknowledged"
+							" from events"
+							" where source=%d and object=%d"
+							" and objectid=" ZBX_FS_UI64
+							" and clock=%d", event->source, event->object, event->objectid, event->acknowledged);
+					
+					if (NULL != (row = DBfetch(result)))
+						ack  = atoi(row[0]);
+					else
+						ack=0;
+
+					DBfree_result(result);
+
+					replace_to = zbx_dsprintf(replace_to, "%d", ack);
+				}
 				else if (0 == strncmp(m, "{$", 2))	/* user defined macros */
 				{
 					cache_trigger_hostids(&hostids, event->trigger.expression);
@@ -3865,7 +3886,8 @@ void	evaluate_expressions(zbx_vector_ptr_t *triggers)
 
 		event.objectid = tr->triggerid;
 		event.value = tr->value;
-
+		event.acknowledged = tr->lastchange;
+		
 		tr->expression = zbx_strdup(NULL, tr->expression_orig);
 
 		/* the trigger expression is used to parse function ids for referenced hostid caching */

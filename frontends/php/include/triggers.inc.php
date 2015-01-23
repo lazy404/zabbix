@@ -592,6 +592,18 @@ function explode_exp($expressionCompressed, $html = false, $resolveMacro = false
 
 				continue;
 			}
+			elseif ($functionId == 'TRIGGER.ACK') {
+				$state = '';
+
+				if ($html) {
+					$expressionExpanded[] = '{'.$functionId.'}';
+				}
+				else {
+					$expressionExpanded .= '{'.$functionId.'}';
+				}
+
+				continue;
+			}
 
 			$state = '';
 			$error = true;
@@ -752,6 +764,14 @@ function triggerExpression($trigger, $html = false) {
 				}
 			}
 			elseif ($functionid == 'TRIGGER.VALUE') {
+				if ($html) {
+					array_push($exp, '{'.$functionid.'}');
+				}
+				else {
+					$exp .= '{'.$functionid.'}';
+				}
+			}
+			elseif ($functionid == 'TRIGGER.ACK') {
 				if ($html) {
 					array_push($exp, '{'.$functionid.'}');
 				}
